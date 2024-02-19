@@ -1,0 +1,245 @@
+openapi: 3.0.1
+info:
+  title: Address Matcher Services
+  version: ""
+  description: |
+    Locate a property and its corresponding CoreLogic identifier for use in subsequent calls to our APIs with this simple tool. Our address matcher takes a single supplied address string and matches it to a valid property from our dataset.
+
+    Our ability to find an address supplied by you and match it to what we have in our datasets is vital to our success as a business in enabling you to discover more about a property or find more property-related information. This service utilises AddressRight,our industry-leading address matching algorithm, and takes our ability to find addresses for you to a new level.
+
+    * * * * *
+
+    *Tip:* We recommend providing the address in the following format to get the best chance for a match:
+
+    [unitNumber] / [streetNumber] [streetName] [streetType] [suburb] [stateCode] [postcode]
+
+    For example:
+
+    -   1A/10 Smith St Smithville QLD 4000; or
+    -   U 1 10 Smith St Smithville QLD 4000
+
+    Summary of components
+    ---------------------
+
+    The matching solution for our APIs is made up of the following 4 main components
+
+    ![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-component-summary.png)
+
+    Match Code Definition
+    ---------------------
+
+    [![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-code-definition-1.png)](https://developer.corelogic.asia/apis/docs/address-match-au#match-type)[![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-code-definition-2.png)](https://developer.corelogic.asia/apis/docs/address-match-au#match-rule)[![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-code-definition-3.png)](https://developer.corelogic.asia/apis/docs/address-match-au#update-indicator)[![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-code-definition-4.png)](https://developer.corelogic.asia/apis/docs/address-match-au#update-detail)
+
+    Each record processed will be output with a Match Code. You can use this code to understand the level of matching performed, what processes the record went through, and any alterations to the record that have been made.
+
+    The code will consist of a 13 alphanumeric characters, split into 4 sections with each section defining a particular part of the processing.
+
+    Address Match Type
+    ------------------
+
+    ![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-type.png)
+
+    The following table lists the definitions for the first character output as part of the Match Code. The codes are mutually exclusive and are executed in the order indicated by the hierarchy.
+
+    | Hierarchy  | Code  | Definition  |
+    | --- | --- | --- |
+    | 1  | E  | Exact match to property found  |
+    | 2  | A  | Alias match to property found  |
+    | 3  | P  | Partial match to property found  |
+    | 4  | F  | Fuzzy match to property found  |
+    | 5  | B  | Building level match found  |
+    | 6  | S  | Street level match found  |
+    | 7  | X  | Input address represents a postal record  |
+    | 8  | D  | Duplicate record found  |
+    | 9  | N  | Non-Match  |
+
+    Address Match Rule
+    ------------------
+
+    ![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-rule.png)
+
+    The Address Match Rule is a more granular view of the Address Match Type and you can use it to understand the exact rule that the API used to recognise the match. You may wish to use this level of granularity to decide what constitutes a match and what doesn't.
+
+    Excluding the error type, you can view the address match type as a collection of address match rules. That is there will be a set of rules that provide an exact match, a set for partial matches, a set for fuzzy matches and so on. 
+
+    Where a match could not be found and the API returns the record with an unmatched address match rule, the API will return no property_ID with the record.
+
+    Mapping between Address Match Type and Address Match Rule (as of April 2017)
+
+    Note: this is a reduced rule set available via the API only. Please request a copy of the AddressRightAU Technical Guide for the full rule set returned in batch processing.
+
+    | Match Rule ID  | Match Type Rule  | Rule Description  |
+    | --- | --- | --- |
+    | 000  | Match Type = 'N'  | No match was found to any of the listed rules but a match was attempted  |
+    | 001  | When Address Update Indicator = 'O' then 'E' Else 'P'  | Match on DPID  |
+    | 002  | When Address Update Indicator = 'O' then 'E' Else 'P'  | Match on full address  |
+    | 039  | When Address Update Indicator = 'O' then 'E' Else 'P'  | DPID match on house or unit  |
+    | 040  | When Address Update Indicator = 'O' then 'E' Else 'P'  | Match on trusted DPIDs only, based on GeoResult codes  |
+    | 003  | Match Type = 'P'  | Match on full address ignoring the end house number when in a range  |
+    | 004  | Match Type = 'P'  | Match on full address ignoring the start house number when in a range  |
+    | 005  | Match Type = 'P'  | Match on full address where source house number 1 matches target house number 2  |
+    | 006  | Match Type = 'P'  | Match on full address matching source end number to target start number  |
+    | 007  | Match Type = 'P'  | Match on full address ignoring postcode  |
+    | 008  | Match Type = 'P'  | Match on full address ignoring locality  |
+    | 010  | Match Type = 'P'  | Match on full address ignoring house number 2 and locality  |
+    | 017  | Match Type = 'P'  | Match on full address ignoring lot number  |
+    | 018  | Match Type = 'P'  | Match on full address ignoring lot number and house number 2  |
+    | 028  | Match Type = 'P'  | Match unit number to lot number  |
+    | 030  | Match Type = 'P'  | Match on full address ignoring st type  |
+    | 070  | Match Type = 'P'  | Match on full address ignoring house number suffixes  |
+    | 102  | Match Type = 'P'  | Match on Alternate lot number  |
+    | 046  | Match Type = 'P'  | Match unit number to lot number ignoring house number 2  |
+    | 048  | Match Type = 'P'  | Match lot number to house number  |
+    | 024  | Match Type = 'F'  | Fuzzy match  |
+    | 038  | Match Type = 'B'  | Match DPID to PDPID where DPID > 30000000 and DPID is unique  |
+    | 242  | Match Type = 'B'  | Match on full address excluding unit  |
+    | 060  | Match Type = 'N'  | PO Box address has been found - no match attempted  |
+    | 061  | Match Type = 'N'  | Address information missing - no match attempted  |
+    | 062  | Match Type = 'N'  | Address parse critical failure - no match attempted  |
+    | 063  | Match Type = 'N'  | Empty street name - no match attempted  |
+    | 064  | Match Type = 'N'  | Post pre-cleanse rules, state is missing - no match attempted  |
+    | 255  | Match Type = 'D'  | Duplicate found - the API does not return a property ID for rules that do not allow the return of duplicates  |
+
+    Address Update Indicator
+    ------------------------
+
+    ![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-update-indicator.png)
+
+    The purpose of the Address Update Indicator is to identify whether the original input record has been altered, either by pre-parse cleansing or by geocoder. Address updates account for any human or input errors by reformatting or updating an address with any missing elements. The API was designed in this way to improve match rates. However, the address update indicator gives you the option to discard matches that have been updated.
+
+    | Address Update Indicator  | Business Rule  |
+    | --- | --- |
+    | O (Original)  | The source property record has had no significant changes made to it before matching. The API will also return a value of 'O' when the record has not been matched due to missing address elements (MatchType = M)  |
+    | U (Updated)  | The source property record may have been updated from its original*  |
+
+    **Note:** the API will never class altered address records as an Exact Match as they will always differ from the original source record provided.
+
+    Address Update Detail
+    ---------------------
+
+    ![](https://developer.corelogic.asia/sites/all/themes/corelogic_devportal/images/content/address-match-update-detail.png)
+
+    The Address Update Detail section of the match code provides information on what changes (if any) were made to the original source record. Use this information to decide whether you want to accept the match or not.
+
+    Note: where invalid data has been supplied it is unlikely a match will be found. In some cases where the provided data includes invalid characters, such as brackets, and the pre-cleansing has failed to correct this, the post-parsed output may be different from the original input and the codes below with not reflect these differences.
+
+    Multiple changes can be made to a record. Codes are therefore concatenated with the maximum being an 8-digit number and the minimum being a 2-digit number. For example, the code 1322 would indicate that a locality correction (13) and a postcode correction/change (22) has occurred on the record.
+
+    |  Detail Code |  Description |
+    | --- | --- |
+    |  00000000 |  No significant changes made |
+    |  10 |  Address field(s) appear to contain non-address data |
+    |  13 |  Locality Correction |
+    |  21 |  State change/correction |
+    |  22 |  Postcode change/correction |
+    |  24 |  Street Name correction |
+    |  25 |  Street Type change/correction |
+    |  33 |  Street number range incorrect |
+    |  34 |  Ambiguous street number match |
+    |  36 |  Lot number and street number ambiguity, street number used to match |
+    |  59 |  Unable to Geocode and /or GeoURN record |
+    |  99 |  Remaining GeoCode Results |
+servers:
+- url: https://api-uat.corelogic.asia/sandbox/search
+security:
+- oauth2:
+  - read
+tags:
+- name: address match
+paths:
+  /au/matcher/address:
+    get:
+      tags:
+      - address match
+      summary: Match an address
+      description: Use this service to match a single address string to a valid property
+        that exists within the CoreLogic database. This provides a simple way for
+        you to locate a property for use in subsequent calls to the API. This is only
+        available to locate properties in Australia. For more details on the matching
+        rules and types.
+      operationId: Address Matcher
+      parameters:
+      - name: clientName
+        in: query
+        description: A string that can be passed to indicate the name of the client
+          requesting the match. Maximum 100 characters will be accepted; anything
+          longer will be truncated.
+        schema:
+          type: string
+      - name: matchProfileId
+        in: query
+        description: The matching profile that is used to determine the rules for
+          identifying the match result. This will default to matchProfileId 1 when
+          excluded from the request.
+        schema:
+          type: integer
+          format: int32
+      - name: q
+        in: query
+        description: 'The full address string that is passed to locate a match.  The
+          string will be modified by data cleansing to improve match rates and the
+          response will indicate if  the string was modified - see updateIndicator.  The
+          maximum number of characters that can be passed is 1000. '
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AddressMatchResponse'
+        "401":
+          description: Unauthorized
+          content: {}
+        "403":
+          description: Forbidden
+          content: {}
+        "404":
+          description: Not Found
+          content: {}
+components:
+  schemas:
+    AddressMatchResponse:
+      type: object
+      properties:
+        matchDetails:
+          $ref: '#/components/schemas/AddressMatchResponseDetail'
+    AddressMatchResponseDetail:
+      type: object
+      properties:
+        matchRule:
+          type: string
+          description: 'The rule of the resulting match and is a more detailed view
+            of the matchType that can be used to identify the match. '
+        matchType:
+          type: string
+          description: Details of the resulting match type and only returned when
+            a successful match is returned.
+        propertyId:
+          type: integer
+          description: "Unique identifier of the matched property. If a match cannot\
+            \ be found, then this will not be returned."
+          format: int64
+        updateDetail:
+          type: string
+          description: "Indicates the detail code(s) that was applied when modifying\
+            \ the input string. When multiple changes are made to the input string,\
+            \ the codes are concatenated. For example, code 1322 means that rule codes\
+            \ 13 and 22 were applied to the string."
+        updateIndicator:
+          type: string
+          description: "Identifies whether the original input string has been altered\
+            \ by data cleansing (formatting, updating address with missing elements,\
+            \ etc.). While the cleansing is designed to improve match rates, the updateIndicator\
+            \ will clearly indicate if the input string was modified. Available values\
+            \ are: *O: Original string, so no significant changes were made; *U:Updated,\
+            \ so the string was modified."
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.corelogic.asia/access/oauth/token
+          scopes: {}
